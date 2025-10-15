@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 450px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .controls button {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .export-btn {
+      background: #28a745;
+      color: white;
+    }
+    .export-btn:hover {
+      background: #218838;
+    }
+    .import-btn {
+      background: #007bff;
+      color: white;
+    }
+    .import-btn:hover {
+      background: #0056b3;
+    }
+    #fileInput {
+      display: none;
+    }
+    .password-item {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .password-item strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .password-item button {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    .password-item button:hover {
+      background: #c82333;
+    }
+    .no-passwords {
+      color: #666;
+      text-align: center;
+      padding: 20px;
+    }
+    .show-password {
+      background: #007bff;
+      margin-left: 5px;
+    }
+    .show-password:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>Saved Passwords</h2>
+  <div class="controls">
+    <button class="export-btn" id="exportBtn">Export to File</button>
+    <button class="import-btn" id="importBtn">Import from File</button>
+  </div>
+  <input type="file" id="fileInput" accept=".json">
+  <div id="password-list"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
