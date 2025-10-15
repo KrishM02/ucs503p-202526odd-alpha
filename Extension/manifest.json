@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Simple Password Manager",
+  "version": "1.0",
+  "description": "Detects login forms and stores credentials in MongoDB",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["http://localhost:3000/*"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "48": "icon.png"
+  }
+}

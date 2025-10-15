@@ -1,0 +1,134 @@
+#pm-save-prompt {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10000;
+  font-family: Arial, sans-serif;
+  max-width: 350px;
+}
+
+.pm-prompt-content h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.pm-prompt-content p {
+  margin: 10px 0;
+  color: #666;
+}
+
+.pm-prompt-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.pm-prompt-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#pm-save-yes {
+  background: #007bff;
+  color: white;
+}
+
+#pm-save-yes:hover {
+  background: #0056b3;
+}
+
+#pm-save-no {
+  background: #6c757d;
+  color: white;
+}
+
+#pm-save-no:hover {
+  background: #5a6268;
+}
+
+.pm-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #28a745;
+  color: white;
+  padding: 15px 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10001;
+  font-family: Arial, sans-serif;
+}
+
+.pm-notification.pm-error {
+  background: #dc3545;
+}
+
+.pm-autofill-container {
+  background: white;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 10000;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.pm-autofill-header {
+  background: #007bff;
+  color: white;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.pm-close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.pm-close-btn:hover {
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+}
+
+.pm-autofill-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.pm-autofill-item {
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  background: white;
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.pm-autofill-item:hover {
+  background: #f0f8ff;
+}
+
+.pm-autofill-item:last-child {
+  border-bottom: none;
+}

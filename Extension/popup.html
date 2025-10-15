@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      width: 450px;
+      padding: 15px;
+      font-family: Arial, sans-serif;
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .api-status {
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 13px;
+    }
+    .api-status.connected {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .api-status.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .password-item {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .password-item strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .password-item button {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    .password-item button:hover {
+      background: #c82333;
+    }
+    .no-passwords {
+      color: #666;
+      text-align: center;
+      padding: 20px;
+    }
+    .show-password {
+      background: #007bff;
+      margin-left: 5px;
+    }
+    .show-password:hover {
+      background: #0056b3;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h2>Saved Passwords</h2>
+  <div id="apiStatus" class="api-status">Checking connection...</div>
+  <div id="password-list"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
