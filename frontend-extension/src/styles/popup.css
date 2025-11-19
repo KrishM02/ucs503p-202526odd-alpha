@@ -1,0 +1,267 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
+}
+
+.popup {
+  width: 400px;
+  min-height: 500px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Auth Styles */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.auth-container h1 {
+  font-size: 28px;
+  color: #667eea;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-container input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.auth-container input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-container button {
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-container button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.auth-container button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error {
+  padding: 12px;
+  background: #fee;
+  color: #c33;
+  border-radius: 6px;
+  font-size: 13px;
+  border-left: 4px solid #c33;
+}
+
+/* Vault Styles */
+.vault-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vault-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.vault-header h2 {
+  font-size: 20px;
+  color: #333;
+}
+
+.logout-btn {
+  padding: 8px 12px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logout-btn:hover {
+  background: #d32f2f;
+}
+
+.add-btn {
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+}
+
+.password-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.password-item {
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.password-item h3 {
+  font-size: 14px;
+  color: #667eea;
+  margin: 0;
+}
+
+.password-item p {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  word-break: break-word;
+}
+
+.password-item button {
+  padding: 6px 12px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.2s;
+}
+
+.password-item button:hover {
+  background: #d32f2f;
+}
+
+/* Add Password Styles */
+.add-password-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-password-container h3 {
+  font-size: 18px;
+  color: #333;
+}
+
+.add-password-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.add-password-container input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: border-color 0.3s;
+}
+
+.add-password-container input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button-group button[type="submit"] {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.button-group button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.button-group button[type="button"] {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.button-group button[type="button"]:hover {
+  background: #d0d0d0;
+}
+
+/* Scrollbar Styles */
+.password-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.password-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.password-list::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 3px;
+}
+
+.password-list::-webkit-scrollbar-thumb:hover {
+  background: #764ba2;
+}

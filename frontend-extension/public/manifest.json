@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "SecureVault - Password Manager",
+  "version": "1.0.0",
+  "description": "End-to-end encrypted password manager",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "SecureVault"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
