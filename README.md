@@ -2,7 +2,7 @@
 
 SecureVault is a secure, browser-based password manager extension built with React (Vite) and Next.js. It features a zero-knowledge architecture, meaning encryption happens entirely on the client side using AES-256-GCM.
 
-## **📂 Project Structure (Fixed)**
+## **📂 Project Structure**
 
 This structure reflects the project **after** moving index.html to the root and configuring Vite for Chrome Extensions.
 
