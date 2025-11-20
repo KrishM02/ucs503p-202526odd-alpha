@@ -1,20 +1,11 @@
-import { MongoClient } from "mongodb";
+import mongoose from "mongoose";
 
-let cachedClient = null;
-
-export async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedClient;
-  }
-
-  const client = new MongoClient(process.env.MONGODB_URI);
-  await client.connect();
-
-  cachedClient = client;
-  return client;
+const connectToDB = async() => {
+    const connectionUrl = process.env.DB_URL;
+    mongoose
+    .connect(connectionUrl)
+    .then(() => console.log("Successfully connected to database"))
+    .catch((err) => console.log(err));
 }
 
-export async function getDatabase() {
-  const client = await connectToDatabase();
-  return client.db("password_manager");
-}
+export default connectToDB;

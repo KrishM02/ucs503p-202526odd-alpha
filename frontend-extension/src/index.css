@@ -1,68 +1,241 @@
 :root {
+  /* Default (Dark Mode) */
+  --bg-color: #242424;
+  --text-color: rgba(255, 255, 255, 0.87);
+  --primary-color: #646cff;
+  --primary-hover: #535bf2;
+  --button-bg: #1a1a1a;
+  --button-border: transparent;
+  --transition-speed: 0.3s;
+  --card-bg: #1a1a1a;
+  --border-color: #404040;
+
+  /* Font settings */
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  /* Browser rendering optimizations */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box; /* Global box-sizing for extension layouts */
+}
+
+[data-theme="light"] {
+  --bg-color: #ffffff;
+  --text-color: #213547;
+  --primary-hover: #747bff;
+  --button-bg: #f9f9f9;
+  --card-bg: #f9f9f9;
+  --border-color: #e0e0e0;
+}
+
+/* Global body styles for popup */
+body {
+  margin: 0;
+  padding: 16px; /* Padding for popup breathing room */
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+  min-width: 320px;
+  min-height: 400px; /* Minimum height for popup */
+  max-width: 400px; /* Max width to fit extension popup */
+  max-height: 600px; /* Limit height to avoid overflow */
+  overflow-y: auto; /* Scroll if content exceeds popup height */
+  
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
 }
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--primary-color);
   text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+  transition: color var(--transition-speed);
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+a:hover {
+  color: var(--primary-hover);
 }
 
 h1 {
-  font-size: 3.2em;
+  font-size: 1.8em; /* Smaller for popup */
   line-height: 1.1;
+  margin: 8px 0;
 }
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1px solid var(--button-border);
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--button-bg);
+  color: var(--text-color);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color var(--transition-speed), color var(--transition-speed);
+  width: 100%; /* Full-width for form buttons */
+  margin: 8px 0;
 }
+
 button:hover {
-  border-color: #646cff;
+  border-color: var(--primary-color);
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Form Styles (Login Section) */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 12px; /* Space between fields */
+  margin-bottom: 16px;
+}
+
+.login-form input {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-size: 1em;
+  transition: border-color var(--transition-speed);
+}
+
+.login-form input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.login-form label {
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-align: left;
+  width: 100%;
+}
+
+/* Passwords List Section */
+.passwords-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  max-height: 300px; /* Limit height to fit popup */
+  overflow-y: auto; /* Scroll if many passwords */
+  padding-right: 8px; /* Space for scrollbar */
+}
+
+.password-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  transition: background-color var(--transition-speed);
+}
+
+.password-card:hover {
+  background-color: color-mix(in srgb, var(--card-bg) 95%, var(--primary-color) 5%);
+}
+
+.password-info {
+  flex: 1;
+  min-width: 0; /* Allow text wrap */
+}
+
+.password-platform {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.password-username {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.password-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}
+
+/* Add Password Button */
+.add-password-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  width: 100%;
+}
+
+.add-password-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Logout Button */
+.logout-btn {
+  background-color: #6b7280;
+  color: white;
+  border: none;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.logout-btn:hover {
+  background-color: #4b5563;
+}
+
+/* System Preference Auto-Detection */
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --bg-color: #ffffff;
+    --text-color: #213547;
+    --primary-hover: #747bff;
+    --button-bg: #f9f9f9;
+    --card-bg: #f9f9f9;
+    --border-color: #e0e0e0;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+/* Extension Popup-Specific Fixes */
+#popup-container { /* Wrap your HTML in a div with this ID if needed */
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* Prevent popup overflow */
+  display: flex;
+  flex-direction: column;
+}
+
+.delete-btn {
+  background-color: #ff4d4f; /* Red */
+  color: white;
+  margin-top: 10px;
+}
+.delete-btn:hover {
+  background-color: #ff7875;
+  border-color: #ff4d4f;
 }

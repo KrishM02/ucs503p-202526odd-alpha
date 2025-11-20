@@ -32,13 +32,14 @@ export default function Popup() {
             />
           ) : (
             <>
+             <Vault key={refreshTrigger} />
               <button 
                 onClick={() => setShowAddPassword(true)}
                 className="add-btn"
               >
                 + Add Password
               </button>
-              <Vault key={refreshTrigger} />
+              
             </>
           )}
         </>

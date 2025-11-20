@@ -1,41 +1,57 @@
-import { updateUserVault } from "@/models/User";
 import { verifyJWT } from "@/middleware/auth";
+import connectToDB from "../../../lib/mongodb";
+import users from "../../../models/Schema";
+
 
 export default async function handler(req, res) {
+  // 1. Handle CORS/Methods immediately
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  const decoded = verifyJWT(token);
-  if (!decoded) {
-    return res.status(401).json({ error: "Invalid token" });
-  }
-
-  const { encryptedVault } = req.body;
-
-  if (!encryptedVault) {
-    return res.status(400).json({ error: "encryptedVault required" });
-  }
-
   try {
-    const updated = await updateUserVault(decoded.email, encryptedVault);
+    // 2. Verify Auth using the REQUEST object (not the token string)
+    // This will verify the token AND inject req.body.authHash and req.body.userEmail
+    const decoded = verifyJWT(req);
 
-    if (!updated) {
+    if (!decoded) {
+      return res.status(401).json({ error: "Unauthorized: Invalid Token" });
+    }
+
+    // 3. Connect to DB
+    await connectToDB();
+
+    // 4. Extract Data
+    // userEmail was injected by verifyJWT
+    const { encryptedVault, userEmail } = req.body; 
+
+    if (!encryptedVault) {
+      return res.status(400).json({ error: "Missing encryptedVault data" });
+    }
+
+    console.log(`Updating vault for: ${userEmail}`);
+
+    // 5. Update Database (Example using direct Mongoose model or helper)
+    // You might need to import your User model directly if you don't have a helper
+     
+    
+    const result = await users.findOneAndUpdate(
+      { email: userEmail },
+      { 
+        encryptedVault: encryptedVault,
+        updatedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!result) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Vault updated successfully",
-    });
+    return res.status(200).json({ success: true });
+
   } catch (error) {
-    console.error("Update vault error:", error);
-    res.status(500).json({ error: "Failed to update vault" });
+    console.error("Vault Update Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }

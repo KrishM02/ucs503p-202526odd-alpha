@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getVault, updateVault, logout } from "../services/auth";
+import { encryptVault } from "../services/crypto";
 
 export default function Vault() {
   const [passwords, setPasswords] = useState([]);
@@ -21,15 +22,44 @@ export default function Vault() {
     }
   };
 
-  const handleDelete = async (index) => {
-    const newPasswords = passwords.filter((_, i) => i !== index);
-    const updatedVault = { passwords: newPasswords };
+  const handleDelete = async (indexToDelete) => {
+    // 1. Confirm action
+    if (!window.confirm("Are you sure you want to delete this password?")) return;
+
+    setError("");
     
+    // Optimistically create the new list to encrypt
+    const newPasswords = passwords.filter((_, i) => i !== indexToDelete);
+    const newVaultObject = { passwords: newPasswords };
+
     try {
-      await updateVault(updatedVault);
+      // 2. Get the encryption key
+      const encryptionKey = localStorage.getItem("encryptionKey");
+      if (!encryptionKey) {
+        throw new Error("Session expired. Please login again.");
+      }
+
+      // 3. Encrypt the updated list BEFORE sending
+      // The API requires the structure: { encryptedVault: "..." }
+      const vaultString = JSON.stringify(newVaultObject);
+      const encryptedData = await encryptVault(vaultString, encryptionKey);
+
+      // 4. Send to API
+      await updateVault({ 
+        encryptedVault: encryptedData 
+      });
+
+      // 5. Update UI
       setPasswords(newPasswords);
+
     } catch (err) {
-      setError(err.message);
+      console.error("Delete failed:", err);
+      setError(err.message || "Failed to delete password");
+      
+      // Optional: If key is missing, force logout
+      if (err.message.includes("Session expired")) {
+        handleLogout();
+      }
     }
   };
 

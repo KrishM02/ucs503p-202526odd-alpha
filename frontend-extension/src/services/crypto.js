@@ -1,4 +1,9 @@
-// Utility to convert between base64 and ArrayBuffer
+// utils/crypto.js
+
+// ==========================================
+// 1. Conversion Utilities
+// ==========================================
+
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   let binary = "";
@@ -9,22 +14,65 @@ function arrayBufferToBase64(buffer) {
 }
 
 function base64ToArrayBuffer(base64) {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  try {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+  } catch (e) {
+    console.error("Base64 decode failed for:", base64);
+    throw new Error("Invalid Base64 string encountered");
   }
-  return bytes.buffer;
 }
 
-// Generate random bytes
-function generateRandomBytes(length) {
-  return crypto.getRandomValues(new Uint8Array(length));
+function bufferToHex(buffer) {
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-// PBKDF2 key derivation
+function hexToBuffer(hex) {
+  if (!hex) return new Uint8Array(0).buffer;
+  const matches = hex.match(/.{1,2}/g);
+  if (!matches) return new Uint8Array(0).buffer;
+  return new Uint8Array(matches.map((byte) => parseInt(byte, 16))).buffer;
+}
+
+// --- CRITICAL FIX: Safe Key Normalizer ---
+// This ensures 'importKey' always receives a Buffer, never a String
+function normalizeKey(key) {
+  if (!key) {
+    throw new Error("Crypto Error: Key is missing (null or undefined)");
+  }
+
+  // If it's already an ArrayBuffer or TypedArray, return it
+  if (key instanceof ArrayBuffer || ArrayBuffer.isView(key)) {
+    return key;
+  }
+
+  // If it's a string, convert it
+  if (typeof key === "string") {
+    // Detect Hex (64 chars, 0-9 a-f)
+    if (key.length === 64 && /^[0-9a-fA-F]+$/.test(key)) {
+      return hexToBuffer(key);
+    }
+    // Default to Base64
+    return base64ToArrayBuffer(key);
+  }
+
+  throw new Error(`Crypto Error: Invalid key format. Expected Buffer or String, got ${typeof key}`);
+}
+
+// ==========================================
+// 2. Key Derivation
+// ==========================================
+
 export async function deriveMasterKey(password, salt, iterations = 300000) {
+  const saltBuffer = normalizeKey(salt); // Fix: Ensure salt is buffer
   const encoder = new TextEncoder();
+  
   const passwordKey = await crypto.subtle.importKey(
     "raw",
     encoder.encode(password),
@@ -36,7 +84,7 @@ export async function deriveMasterKey(password, salt, iterations = 300000) {
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
-      salt: salt,
+      salt: saltBuffer,
       iterations: iterations,
       hash: "SHA-256",
     },
@@ -44,12 +92,13 @@ export async function deriveMasterKey(password, salt, iterations = 300000) {
     256
   );
 
-  return new Uint8Array(derivedBits);
+  return arrayBufferToBase64(derivedBits);
 }
 
-// Generate auth hash (used for server-side verification)
-export async function generateAuthHash(masterKey, staticString = "auth-verification") {
+export async function generateAuthHash(masterKeyBase64, staticString = "auth-verification") {
+  const masterKey = normalizeKey(masterKeyBase64);
   const encoder = new TextEncoder();
+  
   const keyData = await crypto.subtle.importKey(
     "raw",
     masterKey,
@@ -69,30 +118,40 @@ export async function generateAuthHash(masterKey, staticString = "auth-verificat
     256
   );
 
-  return arrayBufferToBase64(hashBits);
+  return bufferToHex(hashBits);
 }
 
-// AES-256-GCM encryption
+// ==========================================
+// 3. Encryption & Decryption
+// ==========================================
+
 export async function encryptVault(vault, encryptionKey) {
+  if (!encryptionKey) throw new Error("No encryption key provided");
+
   const encoder = new TextEncoder();
-  const iv = generateRandomBytes(12);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
   
+  // --- FIX IS HERE ---
+  // Convert the string key to Buffer BEFORE importKey
+  const keyBuffer = normalizeKey(encryptionKey);
+
   const key = await crypto.subtle.importKey(
     "raw",
-    encryptionKey,
+    keyBuffer,
     { name: "AES-GCM" },
     false,
     ["encrypt"]
   );
 
-  const vaultJsonString = JSON.stringify(vault);
+  // Handle Object vs String inputs
+  const stringData = typeof vault === 'object' ? JSON.stringify(vault) : String(vault);
+
   const encryptedData = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv },
     key,
-    encoder.encode(vaultJsonString)
+    encoder.encode(stringData)
   );
 
-  // Combine IV + ciphertext
   const combined = new Uint8Array(iv.length + encryptedData.byteLength);
   combined.set(iv, 0);
   combined.set(new Uint8Array(encryptedData), iv.length);
@@ -100,16 +159,19 @@ export async function encryptVault(vault, encryptionKey) {
   return arrayBufferToBase64(combined);
 }
 
-// AES-256-GCM decryption
 export async function decryptVault(encryptedVaultB64, encryptionKey) {
+  if (!encryptedVaultB64) return { passwords: [] }; // Return empty if null
+
   const combined = new Uint8Array(base64ToArrayBuffer(encryptedVaultB64));
-  
   const iv = combined.slice(0, 12);
   const ciphertext = combined.slice(12);
 
+  // --- FIX IS HERE ---
+  const keyBuffer = normalizeKey(encryptionKey);
+
   const key = await crypto.subtle.importKey(
     "raw",
-    encryptionKey,
+    keyBuffer,
     { name: "AES-GCM" },
     false,
     ["decrypt"]
@@ -122,15 +184,23 @@ export async function decryptVault(encryptedVaultB64, encryptionKey) {
   );
 
   const decoder = new TextDecoder();
-  return JSON.parse(decoder.decode(decryptedData));
+  const decodedString = decoder.decode(decryptedData);
+  
+  try {
+    return JSON.parse(decodedString);
+  } catch (e) {
+    return decodedString;
+  }
 }
 
-// Generate random encryption key
+// ==========================================
+// 4. Generators
+// ==========================================
+
 export function generateEncryptionKey() {
-  return generateRandomBytes(32); // 256-bit key for AES-256
+  return arrayBufferToBase64(crypto.getRandomValues(new Uint8Array(32)));
 }
 
-// Generate random salt
 export function generateAuthSalt() {
-  return generateRandomBytes(16); // 128-bit salt
+  return arrayBufferToBase64(crypto.getRandomValues(new Uint8Array(16)));
 }

@@ -1,10 +1,7 @@
-import { getDatabase } from "@/lib/mongodb";
-import crypto from "crypto";
+import users from "./Schema.js";
 
 export async function createUser(email, authSalt, authHash, encryptedEncryptionKey, encryptedVault) {
-  const db = await getDatabase();
-  const users = db.collection("users");
-
+  
   const result = await users.insertOne({
     email,
     authSalt,
@@ -19,15 +16,10 @@ export async function createUser(email, authSalt, authHash, encryptedEncryptionK
 }
 
 export async function getUserByEmail(email) {
-  const db = await getDatabase();
-  const users = db.collection("users");
   return users.findOne({ email });
 }
 
 export async function updateUserVault(email, encryptedVault) {
-  const db = await getDatabase();
-  const users = db.collection("users");
-
   const result = await users.updateOne(
     { email },
     {
@@ -40,3 +32,4 @@ export async function updateUserVault(email, encryptedVault) {
 
   return result.modifiedCount > 0;
 }
+

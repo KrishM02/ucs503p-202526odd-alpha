@@ -1,152 +1,213 @@
-import { deriveMasterKey, generateAuthHash, generateEncryptionKey, generateAuthSalt } from "./crypto";
-import api from "./api";
+// services/auth.js
+import { 
+  deriveMasterKey, 
+  generateAuthHash, 
+  generateEncryptionKey, 
+  generateAuthSalt, 
+  encryptVault, 
+  decryptVault 
+} from "./crypto.js"; // Ensure this path is correct relative to your file structure
 
-const STORAGE_KEYS = {
-  TOKEN: "pm_token",
-  SESSION_MASTER_KEY: "pm_session_key",
-  SESSION_ENCRYPTION_KEY: "pm_session_enc_key",
-};
+// We use a simple fetch wrapper or axios. 
+// If you don't have a default 'api' export, use standard fetch inside.
+// For this example, I will use standard fetch to be safe and explicit.
 
-// Registration flow
-export async function register(email, masterPassword) {
-  // Generate auth salt client-side
-  const authSalt = new Uint8Array(generateAuthSalt());
+const API_BASE = "http://localhost:3000/api";
 
-  // Derive master key from password
-  const masterKey = await deriveMasterKey(masterPassword, authSalt);
+// ==========================================
+// 1. REGISTRATION
+// ==========================================
+export async function register(email, password) {
+  // 1. Generate new random salt (Base64)
+  const authSalt = generateAuthSalt();
 
-  // Generate auth hash for server verification
+  // 2. Derive Master Key (Base64)
+  // This is never sent to server. Used only to encrypt/decrypt the random key.
+  const masterKey = await deriveMasterKey(password, authSalt);
+
+  // 3. Generate Auth Hash (Hex)
+  // This is sent to server for login verification.
   const authHash = await generateAuthHash(masterKey);
 
-  // Generate encryption key
-  const encryptionKey = new Uint8Array(generateEncryptionKey());
+  // 4. Generate Random Encryption Key (Base64)
+  // This is the actual key used to encrypt the vault data.
+  const encryptionKey = generateEncryptionKey();
 
-  // Encrypt the encryption key using master key
-  const encryptedEncryptionKey = await encryptEncryptionKey(encryptionKey, masterKey);
+  // 5. Encrypt the Encryption Key
+  // We wrap it in an object or encrypt string directly. 
+  // We encrypt it using the Master Key so only the user can recover it.
+  const encryptedEncryptionKey = await encryptVault(encryptionKey, masterKey);
 
-  // Create empty vault
-  const vault = { passwords: [] };
-  const { encryptVault } = await import("./crypto");
-  const encryptedVault = await encryptVault(vault, encryptionKey);
+  // 6. Create & Encrypt Initial Empty Vault
+  const initialVault = { passwords: [] };
+  const encryptedVault = await encryptVault(initialVault, encryptionKey);
 
-  // Send to server
-  const response = await api.post("/api/auth/register", {
-    email,
-    authSalt: Array.from(authSalt),
-    authHash,
-    encryptedEncryptionKey,
-    encryptedVault,
+  // 7. Send to Backend
+  const response = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      authSalt,             // Base64
+      authHash,             // Hex
+      encryptedEncryptionKey, // Base64
+      encryptedVault        // Base64
+    }),
   });
 
-  // Store token and session keys
-  if (response.token) {
-    sessionStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
-    sessionStorage.setItem(STORAGE_KEYS.SESSION_MASTER_KEY, Array.from(masterKey).join(","));
-    sessionStorage.setItem(STORAGE_KEYS.SESSION_ENCRYPTION_KEY, Array.from(encryptionKey).join(","));
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || "Registration failed");
   }
 
-  return response;
+  // 8. Return Token and Key (for Auth.jsx to save)
+  return {
+    token: data.token,
+    encryptionKey: encryptionKey // Return the RAW key so we can use it immediately
+  };
 }
 
-// Login flow
-export async function login(email, masterPassword) {
-  // Get user data from server
-  const loginResponse = await api.post("/api/auth/login", {
-    email,
-    authHash: "", // Placeholder, will be computed
-  });
-
-  // Actually, we need to compute authHash first
-  const authSalt = new Uint8Array(loginResponse.authSalt);
-  const masterKey = await deriveMasterKey(masterPassword, authSalt);
-  const authHash = await generateAuthHash(masterKey);
-
-  // Re-authenticate with computed hash
-  const response = await api.post("/api/auth/login", {
-    email,
-    authHash,
-  });
-
-  if (response.token) {
-    sessionStorage.setItem(STORAGE_KEYS.TOKEN, response.token);
-    sessionStorage.setItem(STORAGE_KEYS.SESSION_MASTER_KEY, Array.from(masterKey).join(","));
-    
-    // Decrypt encryption key
-    const encryptionKey = await decryptEncryptionKey(
-      response.encryptedEncryptionKey,
-      masterKey
-    );
-    sessionStorage.setItem(STORAGE_KEYS.SESSION_ENCRYPTION_KEY, Array.from(encryptionKey).join(","));
-  }
-
-  return response;
-}
-
-// Retrieve vault
-export async function getVault() {
-  const token = sessionStorage.getItem(STORAGE_KEYS.TOKEN);
-  const encryptionKeyStr = sessionStorage.getItem(STORAGE_KEYS.SESSION_ENCRYPTION_KEY);
+// ==========================================
+// 2. LOGIN
+// ==========================================
+export async function login(email, password) {
+  // STEP 1: Get the User's Salt
+  // We cannot hash the password without the user's unique salt.
+  // NOTE: You might need a specific endpoint for this, or use a 'pre-login' check.
+  // Here, I assume POST /api/auth/salt exists OR your login endpoint handles this.
   
-  if (!token || !encryptionKeyStr) {
-    throw new Error("Not authenticated");
-  }
-
-  const encryptionKey = new Uint8Array(encryptionKeyStr.split(",").map(Number));
-
-  const response = await api.get("/api/vault/get", {
-    headers: { Authorization: `Bearer ${token}` },
+  // If you don't have a specific 'get-salt' endpoint, you can try hitting 
+  // login with a dummy hash, and have your backend return the salt on 401.
+  // BUT, for cleaner code, let's assume we can get the user info first.
+  
+  // Workaround if you haven't made a new endpoint:
+  // We try to login with empty hash. If backend is smart, it returns salt.
+  let authSalt;
+  
+  const saltResponse = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, authHash: "FETCH_SALT" }), 
   });
 
-  const { decryptVault } = await import("./crypto");
-  const vault = await decryptVault(response.encryptedVault, encryptionKey);
+  const saltData = await saltResponse.json();
 
-  return vault;
-}
-
-// Update vault
-export async function updateVault(vault) {
-  const token = sessionStorage.getItem(STORAGE_KEYS.TOKEN);
-  const encryptionKeyStr = sessionStorage.getItem(STORAGE_KEYS.SESSION_ENCRYPTION_KEY);
-
-  if (!token || !encryptionKeyStr) {
-    throw new Error("Not authenticated");
+  if (saltData.authSalt) {
+    authSalt = saltData.authSalt;
+  } else {
+    // If the backend didn't give us the salt, we can't log in.
+    // You need to ensure your backend sends { authSalt } even on failure if email exists,
+    // OR create a dedicated route: router.post('/get-salt', ...)
+    throw new Error("Could not retrieve login parameters. User may not exist.");
   }
 
-  const encryptionKey = new Uint8Array(encryptionKeyStr.split(",").map(Number));
+  // STEP 2: Derive Keys
+  const masterKey = await deriveMasterKey(password, authSalt);
+  const authHash = await generateAuthHash(masterKey);
 
-  const { encryptVault } = await import("./crypto");
-  const encryptedVault = await encryptVault(vault, encryptionKey);
+  // STEP 3: Real Login
+  const response = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, authHash }),
+  });
 
-  return api.post(
-    "/api/vault/update",
-    { encryptedVault },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-}
+  const data = await response.json();
 
-// Encrypt encryption key with master key
-async function encryptEncryptionKey(encryptionKey, masterKey) {
-  // Use a simple AES-256-GCM encryption of the key
-  const { encryptVault } = await import("./crypto");
-  return encryptVault(
-    { key: Array.from(encryptionKey) },
+  if (!response.ok) {
+    throw new Error(data.error || "Login failed");
+  }
+
+  // STEP 4: Decrypt the stored Encryption Key
+  // The server sends back 'encryptedEncryptionKey'
+  if (!data.encryptedEncryptionKey) {
+    throw new Error("Server did not return encryption key bundle.");
+  }
+
+  const decryptedEncryptionKey = await decryptVault(
+    data.encryptedEncryptionKey,
     masterKey
   );
+
+  // If we wrapped it in an object { key: '...' }, extract it. 
+  // If we encrypted the string directly, it's already the string.
+  // Based on 'register' function above, we encrypted the string directly.
+  
+  // However, decryptVault usually parses JSON. 
+  // If decryptVault returns a string, use it. If it returns null/error, throw.
+  if (!decryptedEncryptionKey) {
+    throw new Error("Failed to decrypt your vault key. Wrong password?");
+  }
+
+  return {
+    token: data.token,
+    encryptionKey: decryptedEncryptionKey
+  };
 }
 
-// Decrypt encryption key with master key
-async function decryptEncryptionKey(encryptedKeyB64, masterKey) {
-  const { decryptVault } = await import("./crypto");
-  const decrypted = await decryptVault(encryptedKeyB64, masterKey);
-  return new Uint8Array(decrypted.key);
+// ==========================================
+// 3. VAULT OPERATIONS
+// ==========================================
+
+export async function getVault() {
+  const token = localStorage.getItem("token");
+  const encryptionKey = localStorage.getItem("encryptionKey");
+
+  if (!token || !encryptionKey) {
+    throw new Error("Not authenticated");
+  }
+
+  const response = await fetch(`${API_BASE}/vault/get`, {
+    method: "GET",
+    headers: { 
+      "Authorization": `Bearer ${token}` 
+    },
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Failed to fetch vault");
+
+  // Decrypt
+  const vault = await decryptVault(data.encryptedVault, encryptionKey);
+  return vault || { passwords: [] };
 }
+
+export const updateVault = async (vaultData) => {
+  const token = localStorage.getItem("token");
+
+  // Note: vaultData here should contain { encryptedVault: "..." }
+  // It is prepared by AddPassword.jsx
+  
+  const res = await fetch(`${API_BASE}/vault/update`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(vaultData)
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to update vault");
+  }
+  
+  return res.json();
+};
+
+// ==========================================
+// 4. UTILS
+// ==========================================
 
 export function isAuthenticated() {
-  return !!sessionStorage.getItem(STORAGE_KEYS.TOKEN);
+  // Simple check if token exists
+  return !!localStorage.getItem("token");
 }
 
 export function logout() {
-  sessionStorage.removeItem(STORAGE_KEYS.TOKEN);
-  sessionStorage.removeItem(STORAGE_KEYS.SESSION_MASTER_KEY);
-  sessionStorage.removeItem(STORAGE_KEYS.SESSION_ENCRYPTION_KEY);
+  localStorage.removeItem("token");
+  localStorage.removeItem("encryptionKey");
+  // Optional: Reload page
+  window.location.reload(); 
 }
