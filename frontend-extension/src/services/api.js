@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:3000"; // Change to your backend URL
+const API_BASE_URL = process.env.API_BASE_URL; // Change to your backend URL
 
 const api = {
   async request(method, endpoint, data = null, config = {}) {
