@@ -1,6 +1,12 @@
-# **SecureVault \- End-to-End Encrypted Password Manager**
+# **Aegis-Lock \- End-to-End Encrypted Password Manager**
 
 SecureVault is a secure, browser-based password manager extension built with React (Vite) and Next.js. It features a zero-knowledge architecture, meaning encryption happens entirely on the client side using AES-256-GCM.
+
+### **Installation**
+
+1. Download the version for your browser under the "Assets" section of the [latest release](https://github.com/KrishM02/ucs503p-202526odd-alpha/releases).
+
+1. - **Chrome _(Permanent)_:** Unzip > Go to `chrome://extensions` > Enable developer mode > Load unpacked
 
 ## **📂 Project Structure**
 
