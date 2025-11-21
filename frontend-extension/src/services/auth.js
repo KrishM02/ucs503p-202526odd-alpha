@@ -12,7 +12,7 @@ import {
 // If you don't have a default 'api' export, use standard fetch inside.
 // For this example, I will use standard fetch to be safe and explicit.
 
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = "https://ucs503p-202526odd-alpha-umjs.vercel.app/api";
 
 // ==========================================
 // 1. REGISTRATION
