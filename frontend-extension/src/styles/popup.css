@@ -1,4 +1,6 @@
-/* Base Reset */
+/* =========================================
+   1. BASE RESET & LAYOUT (DYNAMIC HEIGHT FIX)
+   ========================================= */
 * {
   margin: 0;
   padding: 0;
@@ -6,75 +8,152 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f7fafc;
   color: #2d3748;
+  
+  /* WIDTH: Keep fixed for stability (recommended) */
   width: 350px;
-  height: 500px;
-  overflow: hidden;
+  
+  /* HEIGHT: Dynamic behavior */
+  height: auto;        /* Grow with content */
+  max-height: 600px;   /* Chrome's absolute limit */
+  
+  overflow-x: hidden;  /* Prevent horizontal scrollbars */
 }
 
-/* Main Container */
 .popup {
-  height: 100%;
+  /* Allow container to be as tall as needed */
+  height: auto;
   display: flex;
   flex-direction: column;
   background: white;
 }
 
-/* Auth Styles */
+/* =========================================
+   2. AUTH SCREEN
+   ========================================= */
 .auth-container {
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  height: 100%;
+  /* Ensure it takes up enough space to look good */
   justify-content: center;
+  background: white;
 }
 
 .auth-container h1 {
   font-size: 24px;
   color: #5a67d8;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-.auth-container input {
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* =========================================
+   3. ADD PASSWORD SCREEN
+   ========================================= */
+.add-password-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  /* Remove fixed height 100% so it just fits content */
+  background: white;
+}
+
+.add-password-container h3 {
+  font-size: 18px;
+  color: #2d3748;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+  font-weight: 600;
+}
+
+.add-password-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Shared Input Styles */
+input {
+  width: 100%;
   padding: 12px;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
+  transition: all 0.2s;
+  background: #f7fafc;
   outline: none;
-  transition: border-color 0.2s;
 }
 
-.auth-container input:focus {
+input:focus {
+  background: white;
   border-color: #5a67d8;
-  box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+  box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.15);
 }
 
-.auth-container button {
+/* Button Group */
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.button-group button {
+  flex: 1;
   padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button-group button[type="submit"] {
   background: #5a67d8;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
 }
 
-.auth-container button:hover {
+.button-group button[type="submit"]:hover {
   background: #4c51bf;
+  transform: translateY(-1px);
 }
 
-/* Vault Container */
+.button-group button[type="submit"]:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-group button[type="button"] {
+  background: white;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+}
+
+.button-group button[type="button"]:hover {
+  background: #f7fafc;
+  border-color: #a0aec0;
+  color: #2d3748;
+}
+
+/* =========================================
+   4. VAULT SCREEN
+   ========================================= */
 .vault-container {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* Let it grow, but enforce a min-height */
   gap: 16px;
 }
 
@@ -93,86 +172,55 @@ body {
 
 .logout-btn {
   padding: 6px 12px;
-  background: #feb2b2;
-  color: #9b2c2c;
-  border: none;
-  border-radius: 4px;
+  background: #fff5f5;
+  color: #c53030;
+  border: 1px solid #fed7d7;
+  border-radius: 6px;
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
 }
 
 .logout-btn:hover {
-  background: #fc8181;
+  background: #fed7d7;
 }
 
-/* Password List */
 .password-list {
-  flex: 1;
+  /* Remove flex: 1 to allow natural height growth */
   display: flex;
   flex-direction: column;
   gap: 12px;
+  
+  /* Important: Define a max-height here to trigger internal scrolling
+     if the list gets TOO long (exceeding Chrome's 600px limit) */
   overflow-y: auto;
-  padding-right: 4px; /* Space for scrollbar */
-}
-
-.password-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.password-list::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 2px;
+  padding: 2px;
 }
 
 .password-item {
-  background: #fff;
+  background: white;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
 .password-item:hover {
   border-color: #5a67d8;
   box-shadow: 0 4px 6px rgba(90, 103, 216, 0.1);
-  transform: translateY(-1px);
 }
 
 .password-item-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
   margin-bottom: 8px;
 }
 
 .password-item-header h3 {
   font-size: 15px;
-  color: #2d3748;
   font-weight: 600;
+  color: #2d3748;
   margin: 0;
-}
-
-.delete-icon {
-  background: none;
-  border: none;
-  cursor: pointer;
-  opacity: 0.4;
-  padding: 4px;
-  font-size: 14px;
-  transition: opacity 0.2s, color 0.2s;
-}
-
-.delete-icon:hover {
-  opacity: 1;
-  color: #e53e3e;
-}
-
-.password-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .detail-row {
@@ -180,21 +228,20 @@ body {
   align-items: center;
   font-size: 13px;
   color: #4a5568;
+  margin-bottom: 4px;
 }
 
 .detail-row .label {
   color: #a0aec0;
   width: 40px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   flex-shrink: 0;
 }
 
 .password-row {
-  display: flex;
   justify-content: space-between;
-  align-items: center;
   width: 100%;
 }
 
@@ -205,82 +252,86 @@ body {
   border-radius: 4px;
   color: #718096;
   font-size: 12px;
-  letter-spacing: 1px;
   flex-grow: 1;
   margin-right: 8px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: all 0.2s;
 }
 
 .password-value.visible {
   background: #ebf8ff;
   color: #2b6cb0;
-  letter-spacing: normal;
   font-weight: 600;
 }
 
 .password-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 
 .action-btn {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
+  padding: 4px;
   cursor: pointer;
-  padding: 4px 6px;
-  font-size: 14px;
   color: #4a5568;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .action-btn:hover {
-  background-color: #f7fafc;
+  background: #f7fafc;
   border-color: #cbd5e0;
   color: #2d3748;
 }
 
-.action-btn:active {
-  transform: scale(0.95);
-  background-color: #edf2f7;
+.delete-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.4;
+  padding: 4px;
+  font-size: 14px;
+  transition: opacity 0.2s;
 }
 
-/* Add Button (Floating or Fixed) */
+.delete-icon:hover {
+  opacity: 1;
+  color: #e53e3e;
+}
+
 .add-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background: #5a67d8;
   color: white;
   border: none;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  margin-top: 12px;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   gap: 8px;
-  transition: background 0.2s;
-  margin-top: auto; /* Push to bottom if flex container */
 }
 
 .add-btn:hover {
   background: #4c51bf;
 }
 
-/* Utility */
+/* Utilities */
 .error {
-  padding: 10px;
   background: #fff5f5;
   color: #c53030;
+  padding: 10px;
   border-radius: 6px;
   font-size: 13px;
   border: 1px solid #fed7d7;
+  margin-bottom: 10px;
 }
 
 .loading, .empty-state {
