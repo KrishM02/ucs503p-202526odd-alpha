@@ -2,10 +2,17 @@ import { useState, useEffect } from "react";
 import { getVault, updateVault, logout } from "../services/auth";
 import { encryptVault } from "../services/crypto";
 
+// ==========================================
+// COMPONENT LOGIC
+// ==========================================
+
 export default function Vault() {
   const [passwords, setPasswords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  // New state: Tracks which passwords are currently visible (by index)
+  const [visiblePasswords, setVisiblePasswords] = useState({});
 
   useEffect(() => {
     loadVault();
@@ -22,44 +29,34 @@ export default function Vault() {
     }
   };
 
-  const handleDelete = async (indexToDelete) => {
-    // 1. Confirm action
-    if (!window.confirm("Are you sure you want to delete this password?")) return;
+  const toggleVisibility = (index) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [index]: !prev[index] // Toggle true/false for this specific index
+    }));
+  };
 
+  const handleDelete = async (indexToDelete) => {
+    if (!window.confirm("Are you sure you want to delete this password?")) return;
     setError("");
     
-    // Optimistically create the new list to encrypt
     const newPasswords = passwords.filter((_, i) => i !== indexToDelete);
     const newVaultObject = { passwords: newPasswords };
 
     try {
-      // 2. Get the encryption key
       const encryptionKey = localStorage.getItem("encryptionKey");
       if (!encryptionKey) {
         throw new Error("Session expired. Please login again.");
       }
 
-      // 3. Encrypt the updated list BEFORE sending
-      // The API requires the structure: { encryptedVault: "..." }
       const vaultString = JSON.stringify(newVaultObject);
       const encryptedData = await encryptVault(vaultString, encryptionKey);
 
-      // 4. Send to API
-      await updateVault({ 
-        encryptedVault: encryptedData 
-      });
-
-      // 5. Update UI
+      await updateVault({ encryptedVault: encryptedData });
       setPasswords(newPasswords);
-
     } catch (err) {
       console.error("Delete failed:", err);
       setError(err.message || "Failed to delete password");
-      
-      // Optional: If key is missing, force logout
-      if (err.message.includes("Session expired")) {
-        handleLogout();
-      }
     }
   };
 
@@ -68,7 +65,11 @@ export default function Vault() {
     window.location.reload();
   };
 
-  if (loading) return <div>Loading...</div>;
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  if (loading) return <div className="loading">Loading vault...</div>;
 
   return (
     <div className="vault-container">
@@ -81,15 +82,58 @@ export default function Vault() {
 
       <div className="password-list">
         {passwords.length === 0 ? (
-          <p>No passwords saved yet.</p>
+          <div className="empty-state">No passwords saved yet.</div>
         ) : (
-          passwords.map((pwd, index) => (
-            <div key={index} className="password-item">
-              <h3>{pwd.website}</h3>
-              <p>Username: {pwd.username}</p>
-              <button onClick={() => handleDelete(index)}>Delete</button>
-            </div>
-          ))
+          passwords.map((pwd, index) => {
+            const isVisible = visiblePasswords[index];
+            
+            return (
+              <div key={index} className="password-item">
+                <div className="password-item-header">
+                  <h3>{pwd.website}</h3>
+                  <button 
+                    className="delete-icon" 
+                    onClick={() => handleDelete(index)}
+                    title="Delete"
+                  >
+                    🗑️
+                  </button>
+                </div>
+                
+                <div className="password-details">
+                  <p className="detail-row">
+                    <span className="label">User:</span> {pwd.username}
+                  </p>
+                  <div className="detail-row password-row">
+                    <span className="label">Pass:</span>
+                    
+                    {/* Password Display Area */}
+                    <span className={`password-value ${isVisible ? 'visible' : ''}`}>
+                      {isVisible ? pwd.password : "••••••••••••"}
+                    </span>
+                    
+                    {/* Action Buttons */}
+                    <div className="password-actions">
+                      <button 
+                        className="action-btn toggle-btn"
+                        onClick={() => toggleVisibility(index)}
+                        title={isVisible ? "Hide Password" : "Show Password"}
+                      >
+                        {isVisible ? "🙈" : "👁️"}
+                      </button>
+                      <button 
+                        className="action-btn copy-btn"
+                        onClick={() => copyToClipboard(pwd.password)}
+                        title="Copy to Clipboard"
+                      >
+                        📋
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>
